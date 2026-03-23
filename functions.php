@@ -27,7 +27,6 @@ add_action('wp_enqueue_scripts', 'chld_thm_cfg_parent_css', 10);
 
 // Module laden
 require_once __DIR__ . '/inc/meta.php';
-require_once __DIR__ . '/inc/rest-fields.php';
 require_once __DIR__ . '/inc/rest-endpoints.php';
 require_once __DIR__ . '/inc/shortcodes.php';
 require_once __DIR__ . '/inc/post-types.php';
