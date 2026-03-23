@@ -300,6 +300,7 @@ add_shortcode('buchrezensionen', function ($atts) {
     ob_start();
     ?>
     <div id="rezensionen-wrapper">
+        <button type="button" id="rez-filter-toggle" style="display:inline-block;background:#39b152;color:#fff;border:none;border-radius:6px;padding:10px 20px;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:15px;">🔍 Filter anzeigen</button>
         <div class="rezensionen-filter" style="background:#f9f9f9;padding:20px;border-radius:8px;margin-bottom:20px;">
             <div style="display:flex;flex-wrap:wrap;gap:15px;align-items:end;">
                 <div style="flex:1;min-width:200px;">
@@ -339,7 +340,6 @@ add_shortcode('buchrezensionen', function ($atts) {
                     </select>
                 </div>
                 <div>
-                    <button type="button" id="rez-filter-btn" style="background:#39b152;color:#fff;border:none;border-radius:6px;padding:10px 20px;font-size:14px;font-weight:600;cursor:pointer;">Filtern</button>
                     <button type="button" id="rez-filter-reset" style="background:#666;color:#fff;border:none;border-radius:6px;padding:10px 20px;font-size:14px;font-weight:600;cursor:pointer;">Zurücksetzen</button>
                 </div>
             </div>
@@ -352,6 +352,8 @@ add_shortcode('buchrezensionen', function ($atts) {
     jQuery(document).ready(function($) {
         var perPage = <?php echo intval($atts['per_page']); ?>;
         var ajaxUrl = '<?php echo admin_url("admin-ajax.php"); ?>';
+        var $filterArea = $('.rezensionen-filter');
+        var $toggleBtn = $('#rez-filter-toggle');
 
         function loadReviews(params) {
             var data = {
@@ -368,19 +370,45 @@ add_shortcode('buchrezensionen', function ($atts) {
             });
         }
 
-        loadReviews({ category: 'book-review' });
-
-        $('#rez-filter-btn').on('click', function() {
-            loadReviews({
+        function getParams() {
+            return {
                 category: $('#rez-filter-cat').val(),
                 author: $('#rez-filter-author').val(),
                 rating: $('#rez-filter-rating').val(),
                 s: $('#rez-filter-search').val()
+            };
+        }
+
+        // Toggle Suchmaske
+        var filterOpen = localStorage.getItem('rezFilterOpen') === 'true';
+        if (filterOpen) { $filterArea.show(); $toggleBtn.text('🔍 Filter ausblenden'); } else { $filterArea.hide(); }
+        $toggleBtn.on('click', function() {
+            $filterArea.slideToggle(300, function() {
+                if ($filterArea.is(':visible')) {
+                    $toggleBtn.text('🔍 Filter ausblenden');
+                    localStorage.setItem('rezFilterOpen', 'true');
+                } else {
+                    $toggleBtn.text('🔍 Filter anzeigen');
+                    localStorage.setItem('rezFilterOpen', 'false');
+                }
             });
         });
 
+        // Auto-submit bei Select-Änderung
+        $('#rez-filter-rating, #rez-filter-cat, #rez-filter-author').on('change', function() {
+            loadReviews(getParams());
+        });
+
+        // Initial laden
+        loadReviews({ category: 'book-review' });
+
+        // Such-Button
+        $('#rez-filter-btn').on('click', function() {
+            loadReviews(getParams());
+        });
+
         $('#rez-filter-search').on('keypress', function(e) {
-            if (e.which === 13) $('#rez-filter-btn').click();
+            if (e.which === 13) loadReviews(getParams());
         });
 
         $('#rez-filter-reset').on('click', function() {
