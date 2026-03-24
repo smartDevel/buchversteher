@@ -186,6 +186,8 @@ jQuery(document).ready(function($) {
         var rating = $(this).val();
         if (rating === 'all') {
             $('.rswpbs-book-container').show();
+            /* Pagination wieder anzeigen */
+            $('.rswpbs-pagination, .rswpbs-books-showcase-pagination, .pagination').show();
         } else {
             $('.rswpbs-book-container').each(function() {
                 var r = $(this).attr('data-book-rating');
@@ -195,6 +197,8 @@ jQuery(document).ready(function($) {
                     $(this).hide();
                 }
             });
+            /* Pagination ausblenden (Filter zeigt nur aktuelle Seite) */
+            $('.rswpbs-pagination, .rswpbs-books-showcase-pagination, .pagination').hide();
         }
     });
 
