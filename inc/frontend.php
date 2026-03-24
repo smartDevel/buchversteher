@@ -156,64 +156,60 @@ jQuery(document).ready(function($) {
         $(this).closest('.search-field').hide();
     });
 
-    /* Rating-Filter hinzufügen (ohne Label, gleiche Höhe wie andere Felder) */
-    var $ratingSelect = $('<div class="search-field" style="flex:1;min-width:150px;">' +
-        '<select name="rating" id="filter-rating" style="width:100%;padding:8px 12px;border:1px solid #ddd;border-radius:6px;">' +
-        '<option value="all">Alle Bewertungen</option>' +
-        '<option value="5">⭐⭐⭐⭐⭐ (5 Sterne)</option>' +
-        '<option value="4">⭐⭐⭐⭐ (4 Sterne)</option>' +
-        '<option value="3">⭐⭐⭐ (3 Sterne)</option>' +
-        '<option value="2">⭐⭐ (2 Sterne)</option>' +
-        '<option value="1">⭐ (1 Stern)</option>' +
-        '</select></div>');
+    /* Rating-Filter: Sterne-Icons (kein Label, gleiche Höhe) */
+    var urlParams = new URLSearchParams(window.location.search);
+    var currentRating = urlParams.get('rating') || 'all';
+
+    var $ratingFilter = $('<div class="search-field rating-filter-field" style="flex:1;min-width:200px;display:flex;align-items:center;gap:2px;padding-top:2px;">' +
+        '<span class="rating-star" data-rating="1" style="cursor:pointer;font-size:22px;color:#ccc;" title="1 Stern">★</span>' +
+        '<span class="rating-star" data-rating="2" style="cursor:pointer;font-size:22px;color:#ccc;" title="2 Sterne">★</span>' +
+        '<span class="rating-star" data-rating="3" style="cursor:pointer;font-size:22px;color:#ccc;" title="3 Sterne">★</span>' +
+        '<span class="rating-star" data-rating="4" style="cursor:pointer;font-size:22px;color:#ccc;" title="4 Sterne">★</span>' +
+        '<span class="rating-star" data-rating="5" style="cursor:pointer;font-size:22px;color:#ccc;" title="5 Sterne">★</span>' +
+        '<span class="rating-clear" style="cursor:pointer;margin-left:6px;font-size:14px;color:#999;" title="Filter zurücksetzen">✕</span>' +
+        '<input type="hidden" name="rating" id="filter-rating" value="' + currentRating + '">' +
+        '</div>');
+
+    function updateStars(rating) {
+        $ratingFilter.find('.rating-star').each(function() {
+            var r = parseInt($(this).data('rating'));
+            $(this).css('color', (r <= rating) ? '#f59e0b' : '#ccc');
+        });
+    }
+
+    /* Initiale Sterne-Beleuchtung */
+    if (currentRating !== 'all') {
+        updateStars(parseInt(currentRating));
+    }
+
+    /* Klick auf Stern */
+    $ratingFilter.on('click', '.rating-star', function() {
+        var r = parseInt($(this).data('rating'));
+        $('#filter-rating').val(r);
+        updateStars(r);
+        /* Formular absenden */
+        $('#rswpbs-books-search-form').submit();
+    });
+
+    /* Klick auf Zurücksetzen */
+    $ratingFilter.on('click', '.rating-clear', function() {
+        $('#filter-rating').val('all');
+        updateStars(0);
+        $('#rswpbs-books-search-form').submit();
+    });
+
+    /* In Suchformular einfügen */
     var $searchFields = $('.rswpbs-advanced-search-form-area .search-fields');
     if ($searchFields.length) {
-        $searchFields.append($ratingSelect);
+        $searchFields.append($ratingFilter);
     } else {
         var $form = $('#rswpbs-books-search-form');
         if ($form.length) {
             var $submit = $form.find('input[type="submit"]').closest('.search-field, .submit-field');
             if ($submit.length) {
-                $submit.before($ratingSelect);
+                $submit.before($ratingFilter);
             }
         }
-    }
-
-    /* URL-Parameter: Rating vorauswählen OHNE Event-Loop */
-    var urlParams = new URLSearchParams(window.location.search);
-    var currentRating = urlParams.get('rating');
-    if (currentRating) {
-        $('#filter-rating').val(currentRating);
-        /* Client-seitig filtern: Buchkarten ohne passende Sterne ausblenden */
-        filterBooksByRating(parseInt(currentRating));
-    }
-
-    /* Rating-Filter: Auto-Submit NUR bei echter User-Änderung */
-    $('#filter-rating').on('change', function() {
-        var rating = $(this).val();
-        var url = new URL(window.location.href);
-        if (rating && rating !== 'all') {
-            url.searchParams.set('rating', rating);
-        } else {
-            url.searchParams.delete('rating');
-        }
-        window.location.href = url.toString();
-    });
-
-    /* Client-seitige Filterung nach Bewertung */
-    function filterBooksByRating(rating) {
-        $('.rswpbs-book, .book-card, .rswpbs-book-card, [class*="book-item"]').each(function() {
-            var $card = $(this);
-            /* Suche nach vollständigen Sternen in der Karte */
-            var cardText = $card.text();
-            var starMatch = cardText.match(/(\d+(?:\.\d+)?)\s*\/\s*5/);
-            if (starMatch) {
-                var bookRating = parseFloat(starMatch[1]);
-                if (Math.round(bookRating) !== rating) {
-                    $card.hide();
-                }
-            }
-        });
     }
 
     /* Search Button */
