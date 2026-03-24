@@ -24,6 +24,13 @@ add_action('template_redirect', function () {
     }
 });
 
+// Alle Bücher auf /books/ laden (für Client-seitige Filterung)
+add_action('pre_get_posts', function ($query) {
+    if (is_admin()) return;
+    if (!is_page('books')) return;
+    $query->set('posts_per_page', -1);
+});
+
 // Rating-Filter: Book ID→Rating Mapping im Footer
 add_action('wp_footer', function () {
     if (is_admin()) return;
