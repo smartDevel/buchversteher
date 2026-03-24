@@ -156,9 +156,8 @@ jQuery(document).ready(function($) {
         $(this).closest('.search-field').hide();
     });
 
-    /* Rating-Filter hinzufügen */
+    /* Rating-Filter hinzufügen (ohne Label, gleiche Höhe wie andere Felder) */
     var $ratingSelect = $('<div class="search-field" style="flex:1;min-width:150px;">' +
-        '<label for="filter-rating" style="display:block;font-weight:600;margin-bottom:5px;">Bewertung</label>' +
         '<select name="rating" id="filter-rating" style="width:100%;padding:8px 12px;border:1px solid #ddd;border-radius:6px;">' +
         '<option value="all">Alle Bewertungen</option>' +
         '<option value="5">⭐⭐⭐⭐⭐ (5 Sterne)</option>' +
