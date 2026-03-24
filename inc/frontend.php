@@ -168,18 +168,37 @@ jQuery(document).ready(function($) {
         }
     }
 
+    /* Buchkarten mit data-book-rating versehen (Slug-Mapping) */
+    var slugRating = window.__bookSlugRating || {};
+    $('.rswpbs-book-container').each(function() {
+        var $container = $(this);
+        var $link = $container.find('a').first();
+        if (!$link.length) return;
+        var href = $link.attr('href') || '';
+        /* Slug aus URL extrahieren */
+        var parts = href.replace(/\/$/, '').split('/');
+        var slug = parts[parts.length - 1];
+        if (slugRating[slug]) {
+            $container.closest('[class*="rswpbs-col"]').attr('data-book-rating', slugRating[slug]);
+        }
+    });
+
     /* Filterung */
     $(document).on('change', '#filter-rating', function() {
         var rating = $(this).val();
-        $('[data-book-rating]').each(function() {
-            var $wrapper = $(this);
-            var $card = $wrapper.closest('[class*="rswpbs-col"]');
-            if (rating === 'all' || $wrapper.attr('data-book-rating') === rating) {
-                $card.show();
-            } else {
-                $card.hide();
-            }
-        });
+        if (rating === 'all') {
+            $('[class*="rswpbs-col"][data-book-rating]').show();
+            $('[class*="rswpbs-col"]:not([data-book-rating])').show();
+        } else {
+            $('[data-book-rating]').each(function() {
+                var $card = $(this);
+                if ($card.attr('data-book-rating') === rating) {
+                    $card.show();
+                } else {
+                    $card.hide();
+                }
+            });
+        }
     });
 
     /* Search Button */
