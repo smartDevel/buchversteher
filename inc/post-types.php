@@ -24,23 +24,5 @@ add_action('template_redirect', function () {
     }
 });
 
-// Rating-Filter für Bücher (alle Queries, nicht nur main query)
-add_filter('posts_clauses', function ($clauses, $query) {
-    if (is_admin()) return $clauses;
-    if (empty($_GET['rating']) || $_GET['rating'] === 'all') return $clauses;
-    $rating = intval($_GET['rating']);
-    if ($rating < 1 || $rating > 5) return $clauses;
-
-    global $wpdb;
-
-    $clauses['join'] .= " INNER JOIN {$wpdb->postmeta} AS rating_filter ON (
-        {$wpdb->posts}.ID = rating_filter.post_id
-        AND rating_filter.meta_key = 'average_book_rating'
-        AND rating_filter.meta_value = '{$rating}'
-    )";
-
-    $clauses['groupby'] = "{$wpdb->posts}.ID";
-
-    return $clauses;
-}, 10, 2);
+// Rating-Filter: hier leer — Filterung erfolgt client-seitig via JavaScript
 

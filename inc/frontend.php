@@ -184,6 +184,8 @@ jQuery(document).ready(function($) {
     var currentRating = urlParams.get('rating');
     if (currentRating) {
         $('#filter-rating').val(currentRating);
+        /* Client-seitig filtern: Buchkarten ohne passende Sterne ausblenden */
+        filterBooksByRating(parseInt(currentRating));
     }
 
     /* Rating-Filter: Auto-Submit NUR bei echter User-Änderung */
@@ -197,6 +199,22 @@ jQuery(document).ready(function($) {
         }
         window.location.href = url.toString();
     });
+
+    /* Client-seitige Filterung nach Bewertung */
+    function filterBooksByRating(rating) {
+        $('.rswpbs-book, .book-card, .rswpbs-book-card, [class*="book-item"]').each(function() {
+            var $card = $(this);
+            /* Suche nach vollständigen Sternen in der Karte */
+            var cardText = $card.text();
+            var starMatch = cardText.match(/(\d+(?:\.\d+)?)\s*\/\s*5/);
+            if (starMatch) {
+                var bookRating = parseFloat(starMatch[1]);
+                if (Math.round(bookRating) !== rating) {
+                    $card.hide();
+                }
+            }
+        });
+    }
 
     /* Search Button */
     $('#rswpbs-books-search-form input[type="submit"]').each(function() {
