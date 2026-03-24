@@ -24,23 +24,43 @@ add_action('template_redirect', function () {
     }
 });
 
-// Rating-Filter: AJAX Endpoint für Buch-Ratings
-add_action('wp_ajax_get_book_ratings', 'rswpbs_get_book_ratings_ajax');
-add_action('wp_ajax_nopriv_get_book_ratings', 'rswpbs_get_book_ratings_ajax');
-function rswpbs_get_book_ratings_ajax() {
-    $books = get_posts(['post_type' => 'book', 'numberposts' => -1, 'fields' => 'ids']);
-    $ratings = [];
-    foreach ($books as $bid) {
-        $avg = get_post_meta($bid, 'average_book_rating', true);
-        if ($avg !== '' && $avg !== 'nan') $ratings[$bid] = round(floatval($avg));
-    }
-    wp_die(json_encode($ratings));
-}
+// Rating-Filter: Rating direkt in Buchkarten-HTML einbetten
+add_action('template_redirect', function () {
+    if (is_admin()) return;
+    ob_start(function ($html) {
+        if (strpos($html, 'rswpbs-book-loop-content-wrapper') === false) return $html;
 
-// AJAX-URL für Frontend bereitstellen
-add_action('wp_enqueue_scripts', function () {
-    wp_localize_script('jquery', 'rswpbsData', [
-        'ajaxurl' => admin_url('admin-ajax.php')
-    ]);
+        /* Ratings laden */
+        global $wpdb;
+        $rows = $wpdb->get_results(
+            "SELECT post_id, meta_value FROM {$wpdb->postmeta} WHERE meta_key = 'average_book_rating'",
+            OBJECT_K
+        );
+        $ratings = [];
+        foreach ($rows as $pid => $row) {
+            if ($row->meta_value !== '' && $row->meta_value !== 'nan') {
+                $ratings[$pid] = round(floatval($row->meta_value));
+            }
+        }
+
+        /* Jede Buchkarte mit data-book-rating versehen */
+        $html = preg_replace_callback(
+            '/<div class="rswpbs-book-loop-content-wrapper">(.*?)<\/div>\s*<div class="rswpbs-book-buttons-wrapper/s',
+            function ($matches) use ($ratings) {
+                $content = $matches[1];
+                /* Book ID aus Link extrahieren */
+                if (preg_match('/book_id=(\d+)/', $content, $idMatch)) {
+                    $bookId = $idMatch[1];
+                    if (isset($ratings[$bookId])) {
+                        return '<div class="rswpbs-book-loop-content-wrapper" data-book-rating="' . $ratings[$bookId] . '">' . $matches[1] . '</div><div class="rswpbs-book-buttons-wrapper';
+                    }
+                }
+                return $matches[0];
+            },
+            $html
+        );
+
+        return $html;
+    });
 });
 

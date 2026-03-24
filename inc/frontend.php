@@ -149,7 +149,7 @@ jQuery(document).ready(function($) {
     $('#book-isbn-10').closest('.rswpbs-col-lg-3, .rswpbs-col-lg-4, [class*="col"]').hide();
     $('#book-isbn-10').closest('.search-field').parent().hide();
 
-    /* Rating-Filter: AJAX-basierte Client-Filterung */
+    /* Rating-Filter: Sterne-Dropdown */
     var $ratingSelect = $('<select id="filter-rating" style="width:100%;padding:8px 12px;border:1px solid #ddd;border-radius:6px;">' +
         '<option value="all">Alle Bewertungen</option>' +
         '<option value="5">⭐⭐⭐⭐⭐ (5 Sterne)</option>' +
@@ -168,43 +168,18 @@ jQuery(document).ready(function($) {
         }
     }
 
-    /* AJAX: Ratings laden und data-attribute setzen */
-    var ajaxUrl = (typeof rswpbsData !== 'undefined' && rswpbsData.ajaxurl) ? rswpbsData.ajaxurl : '/wp-admin/admin-ajax.php';
-    $.get(ajaxUrl, { action: 'get_book_ratings' }, function(response) {
-        var bookRatings = {};
-        try {
-            bookRatings = typeof response === 'string' ? JSON.parse(response) : response;
-        } catch(e) { return; }
-
-        /* Jede Buchkarte mit data-book-rating versehen */
-        $('.rswpbs-books-showcase-book-loop-container a[href*="book_id"]').each(function() {
-            var href = $(this).attr('href');
-            var match = href.match(/book_id=(\d+)/);
-            if (match) {
-                var bookId = match[1];
-                if (bookRatings[bookId]) {
-                    $(this).closest('[class*="rswpbs-col"]').attr('data-book-rating', bookRatings[bookId]);
-                }
-            }
-        });
-    });
-
     /* Filterung */
     $(document).on('change', '#filter-rating', function() {
         var rating = $(this).val();
-        var $allCards = $('.rswpbs-books-showcase-book-loop-container > .rswpbs-row > [class*="rswpbs-col"]');
-        if (rating === 'all') {
-            $allCards.show();
-        } else {
-            $allCards.each(function() {
-                var r = $(this).attr('data-book-rating');
-                if (r === rating) {
-                    $(this).show();
-                } else {
-                    $(this).hide();
-                }
-            });
-        }
+        $('[data-book-rating]').each(function() {
+            var $wrapper = $(this);
+            var $card = $wrapper.closest('[class*="rswpbs-col"]');
+            if (rating === 'all' || $wrapper.attr('data-book-rating') === rating) {
+                $card.show();
+            } else {
+                $card.hide();
+            }
+        });
     });
 
     /* Search Button */
