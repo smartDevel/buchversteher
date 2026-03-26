@@ -32,4 +32,5 @@ require_once __DIR__ . '/inc/shortcodes.php';
 require_once __DIR__ . '/inc/post-types.php';
 require_once __DIR__ . '/inc/frontend.php';
 require_once __DIR__ . '/inc/tag-cloud.php';
+require_once __DIR__ . '/inc/yoast-og-image.php';
 
